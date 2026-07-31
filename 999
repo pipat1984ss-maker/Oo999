@@ -1,0 +1,63 @@
+local P, U, R, S = game:GetService("Players"), game:GetService("UserInputService"), game:GetService("RunService"), game:GetService("Players").LocalPlayer
+local G = S:WaitForChild("PlayerGui", 5) if not G then return end
+if G:FindFirstChild("RainbowNoClip") then G.RainbowNoClip:Destroy() end
+
+local SG = Instance.new("ScreenGui", G) SG.Name = "RainbowNoClip" SG.ResetOnSpawn = false
+local TB = Instance.new("TextButton", SG) TB.Size = UDim2.new(0, 50, 0, 50) TB.Position = UDim2.new(0, 30, 0.4, 0) TB.BackgroundColor3 = Color3.fromRGB(30, 30, 30) TB.TextColor3 = Color3.fromRGB(255, 255, 255) TB.Text = "เมนู" TB.TextSize = 14 TB.Active = true
+Instance.new("UICorner", TB).CornerRadius = UDim.new(1, 0)
+local TS = Instance.new("UIStroke", TB) TS.Thickness = 2
+
+local MF = Instance.new("Frame", SG) MF.Size = UDim2.new(0, 220, 0, 140) MF.Position = UDim2.new(0, 90, 0.3, 0) MF.BackgroundColor3 = Color3.fromRGB(20, 20, 20) MF.BackgroundTransparency = 0.1
+Instance.new("UICorner", MF).CornerRadius = UDim.new(0, 10)
+local MS = Instance.new("UIStroke", MF) MS.Thickness = 2
+
+-- ระบบลากปุ่มและเมนู
+local function makeDraggable(obj)
+	local dragging, dragStart, startPos
+	obj.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragging = true dragStart = input.Position startPos = obj.Position
+			input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
+		end
+	end)
+	U.InputChanged:Connect(function(input)
+		if dragging and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement) then
+			local delta = input.Position - dragStart
+			obj.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+		end
+	end)
+end
+makeDraggable(TB) makeDraggable(MF)
+
+TB.Activated:Connect(function() MF.Visible = not MF.Visible end)
+
+local TL = Instance.new("TextLabel", MF) TL.Size = UDim2.new(1, 0, 0, 35) TL.BackgroundTransparency = 1 TL.TextColor3 = Color3.fromRGB(255, 255, 255) TL.Text = "👻 Rainbow NoClip" TL.TextSize = 14
+
+local NCBtn = Instance.new("TextButton", MF) NCBtn.Size = UDim2.new(0, 190, 0, 45) NCBtn.Position = UDim2.new(0, 15, 0, 45) NCBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40) NCBtn.TextColor3 = Color3.fromRGB(255, 255, 255) NCBtn.Text = "เดินทะลุ: OFF" NCBtn.TextSize = 13
+Instance.new("UICorner", NCBtn).CornerRadius = UDim.new(0, 6)
+
+-- ระบบเดินทะลุกำแพง (NoClip)
+local noclipActive = false
+
+NCBtn.Activated:Connect(function()
+	noclipActive = not noclipActive
+	if noclipActive then
+		NCBtn.Text = "เดินทะลุ: ON" NCBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+	else
+		NCBtn.Text = "เดินทะลุ: OFF" NCBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	end
+end)
+
+R.Stepped:Connect(function()
+	local hue = tick() % 5 / 5
+	local rc = Color3.fromHSV(hue, 1, 1)
+	TS.Color = rc MS.Color = rc TL.TextColor3 = rc
+	
+	if noclipActive and S.Character then
+		for _, part in ipairs(S.Character:GetDescendants()) do
+			if part:IsA("BasePart") then
+				part.CanCollide = false
+			end
+		end
+	end
+end)
